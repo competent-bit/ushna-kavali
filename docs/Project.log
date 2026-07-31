@@ -1,0 +1,366 @@
+# ARM C++ Temperature Monitor — Project Log
+
+## Project Goal
+
+Build a bare-metal C++ temperature monitoring system using an ARM Cortex-M microcontroller.
+
+Target:
+
+* MCU: STM32F103C8 (ARM Cortex-M3)
+* Simulator: Wokwi
+* Language: Modern C++
+* Sensor: I2C temperature sensor (TMP102 planned)
+* Output:
+
+  * LED alarm when temperature exceeds threshold
+  * UART temperature logging
+
+Final architecture:
+
+```
+Application
+    |
+Temperature Monitor
+    |
+Device Drivers
+    |
+GPIO | I2C | UART | Timer
+    |
+STM32 Registers
+    |
+ARM Cortex-M3
+```
+
+---
+
+# Completed Work
+
+## 1. Development Environment
+
+Setup:
+
+* Ubuntu
+* VS Code
+* ARM GNU Toolchain
+* CMake
+* Ninja
+* Git
+
+Installed tools:
+
+```
+arm-none-eabi-gcc
+arm-none-eabi-g++
+arm-none-eabi-objcopy
+cmake
+ninja
+git
+```
+
+---
+
+# 2. Project Structure Created
+
+Current repository:
+
+```
+arm-cpp-temperature-monitor/
+
+├── .vscode/
+├── app/
+├── cmake/
+├── devices/
+├── docs/
+├── drivers/
+│   ├── gpio/
+│   ├── i2c/
+│   ├── rcc/
+│   └── uart/
+├── include/
+├── linker/
+├── src/
+├── startup/
+├── tests/
+└── wokwi/
+```
+
+---
+
+# 3. Git Initialized
+
+Repository created:
+
+```
+git init
+```
+
+A `.gitignore` was added for:
+
+* build files
+* binaries
+* object files
+* VS Code cache
+
+---
+
+# 4. CMake Build System
+
+Created:
+
+```
+CMakeLists.txt
+arm-gcc-toolchain.cmake
+```
+
+The project now supports ARM cross compilation.
+
+Build commands:
+
+Configure:
+
+```
+cmake \
+-S . \
+-B build \
+-G Ninja \
+-DCMAKE_TOOLCHAIN_FILE=arm-gcc-toolchain.cmake
+```
+
+Build:
+
+```
+cmake --build build
+```
+
+---
+
+# 5. Bare-Metal Firmware Files Added
+
+Created:
+
+```
+src/main.cpp
+
+startup/startup_stm32f103.s
+
+linker/stm32f103.ld
+```
+
+Purpose:
+
+## Linker Script
+
+Defines MCU memory:
+
+```
+FLASH:
+0x08000000
+64KB
+
+RAM:
+0x20000000
+20KB
+```
+
+## Startup Assembly
+
+Creates:
+
+* Vector table
+* Initial stack pointer
+* Reset Handler
+
+Boot sequence:
+
+```
+Power ON
+
+↓
+
+Vector Table
+
+↓
+
+Reset_Handler
+
+↓
+
+SystemInit()
+
+↓
+
+main()
+```
+
+---
+
+# 6. Firmware Build Successful
+
+Generated:
+
+```
+build/
+
+temperature-monitor.elf
+temperature-monitor.bin
+temperature-monitor.map
+```
+
+Meaning:
+
+ELF:
+
+* Debuggable firmware
+
+BIN:
+
+* Flashable image
+
+MAP:
+
+* Memory layout report
+
+---
+
+# Current Status
+
+Project is at:
+
+```
+Bare-metal ARM boot stage completed
+```
+
+The MCU can:
+
+* start execution
+* enter main()
+* produce a valid ARM firmware image
+
+---
+
+# Next Task
+
+## Lesson 3 — GPIO Driver
+
+Goal:
+
+Control the STM32 onboard LED.
+
+Tasks:
+
+1. Create hardware register definitions:
+
+```
+include/stm32f103.hpp
+```
+
+2. Define:
+
+* RCC registers
+* GPIO registers
+
+3. Enable GPIOC clock
+
+4. Configure:
+
+```
+GPIOC Pin 13
+```
+
+as output.
+
+5. Toggle LED using direct register writes.
+
+Expected result:
+
+```
+STM32 GPIO register
+        |
+        |
+        v
+LED ON/OFF
+```
+
+---
+
+# Future Roadmap
+
+After GPIO:
+
+1. UART driver
+
+Purpose:
+
+```
+Temperature: 25.5 C
+```
+
+2. I2C driver
+
+Learn:
+
+* START
+* STOP
+* ACK
+* Addressing
+
+3. TMP102 driver
+
+Read:
+
+```
+Temperature register
+```
+
+4. Temperature Monitor application
+
+Logic:
+
+```
+Read temperature
+
+↓
+
+Compare threshold
+
+↓
+
+LED alarm
+```
+
+5. Improve firmware:
+
+* Interrupts
+* Timers
+* Unit tests
+* Better C++ architecture
+
+---
+
+# Resume Command Tomorrow
+
+Open terminal:
+
+```
+cd arm-cpp-temperature-monitor
+code .
+```
+
+Check:
+
+```
+git status
+```
+
+Build:
+
+```
+cmake --build build
+```
+
+Continue from:
+
+```
+Lesson 3 — GPIO Driver
+```
+
