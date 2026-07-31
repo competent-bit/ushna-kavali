@@ -1,0 +1,10 @@
+build/
+.vscode/.browse*
+.vscode/ipch
+*.o
+*.elf
+*.bin
+*.map
+*.hex
+*.a
+*.obj
