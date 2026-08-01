@@ -1,6 +1,6 @@
 #include <cstdint>
-
-
+#include "gpio.h"
+#include "delay.h"
 extern "C"
 void SystemInit()
 {
@@ -10,12 +10,19 @@ void SystemInit()
 int main()
 {
 
-    volatile uint32_t counter = 0;
-
-
+    
+    GpuIO gpio;
+    gpio.InitGpio();
+    
     while(true)
     {
-        counter++;
+        gpio.SetLed();
+
+        delay::ms(500);
+
+        gpio.UnsetLed();
+
+        delay::ms(500);
     }
 
 
