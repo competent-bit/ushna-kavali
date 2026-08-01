@@ -18,6 +18,9 @@ target_sources(
     PRIVATE
         src/main.cpp
         startup/startup_stm32f103.s
+        drivers/gpio/gpio.cpp
+        drivers/timers/delay.cpp
+        
 )
 
 target_compile_options(
@@ -49,4 +52,11 @@ add_custom_command(
         -O binary
         ushna-kavali
         ushna-kavali.bin
+)
+target_include_directories(
+    ushna-kavali
+    PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/drivers/gpio
+    ${CMAKE_SOURCE_DIR}/drivers/timers
 )
