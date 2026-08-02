@@ -1,0 +1,706 @@
+```markdown
+# ARM C++ Temperature Monitor — Updated Project Log
+
+## Project Goal
+
+Build a bare-metal C++ temperature monitoring system using an ARM Cortex-M microcontroller.
+
+Target:
+
+* MCU: STM32F103C8 (ARM Cortex-M3)
+* Simulator: Wokwi
+* Language: Modern C++
+* Sensor: I2C temperature sensor (TMP102 planned)
+
+Output:
+
+* LED alarm when temperature exceeds threshold
+* UART temperature logging
+
+Final architecture:
+
+```
+
+Application
+|
+Temperature Monitor
+|
+Device Drivers
+|
+GPIO | I2C | UART | Timer
+|
+STM32 Registers
+|
+ARM Cortex-M3
+
+```
+
+---
+
+# Completed Work
+
+## 1. Development Environment
+
+Setup completed:
+
+* Ubuntu
+* VS Code
+* ARM GNU Toolchain
+* CMake
+* Ninja
+* Git
+
+Installed tools:
+
+```
+
+arm-none-eabi-gcc
+arm-none-eabi-g++
+arm-none-eabi-objcopy
+cmake
+ninja
+git
+
+```
+
+---
+
+# 2. Project Structure Created
+
+Current repository:
+
+```
+
+arm-cpp-temperature-monitor/
+
+├── .vscode/
+├── app/
+├── cmake/
+├── devices/
+├── docs/
+├── drivers/
+│   ├── gpio/
+│   ├── i2c/
+│   ├── rcc/
+│   └── uart/
+├── include/
+├── linker/
+├── src/
+├── startup/
+├── tests/
+└── wokwi/
+
+```
+
+---
+
+# 3. Git Initialized
+
+Repository created:
+
+```
+
+git init
+
+```
+
+`.gitignore` added for:
+
+* build files
+* binaries
+* object files
+* VS Code cache
+
+---
+
+# 4. CMake Build System
+
+Created:
+
+```
+
+CMakeLists.txt
+arm-gcc-toolchain.cmake
+
+```
+
+Supports ARM cross compilation.
+
+Build commands:
+
+Configure:
+
+```
+
+cmake 
+-S . 
+-B build 
+-G Ninja 
+-DCMAKE_TOOLCHAIN_FILE=arm-gcc-toolchain.cmake
+
+```
+
+Build:
+
+```
+
+cmake --build build
+
+```
+
+---
+
+# 5. Bare-Metal Firmware Completed
+
+Created:
+
+```
+
+src/main.cpp
+
+startup/startup_stm32f103.s
+
+linker/stm32f103.ld
+
+```
+
+## Linker Script
+
+Defines STM32F103 memory:
+
+```
+
+FLASH:
+0x08000000
+64KB
+
+RAM:
+0x20000000
+20KB
+
+```
+
+## Startup Assembly
+
+Implemented:
+
+* Vector table
+* Initial stack pointer
+* Reset Handler
+
+Boot flow:
+
+```
+
+Power ON
+
+↓
+
+Vector Table
+
+↓
+
+Reset_Handler
+
+↓
+
+SystemInit()
+
+↓
+
+main()
+
+```
+
+---
+
+# 6. Firmware Build Successful
+
+Generated:
+
+```
+
+build/
+
+temperature-monitor.elf
+temperature-monitor.bin
+temperature-monitor.map
+
+```
+
+Meaning:
+
+ELF:
+
+* Debuggable firmware
+
+BIN:
+
+* Flashable image
+
+MAP:
+
+* Memory layout report
+
+---
+
+# Lesson 3 — GPIO Driver Progress
+
+## Goal
+
+Control STM32 onboard LED using direct register access.
+
+Target:
+
+```
+
+GPIOC Pin 13
+
+```
+
+---
+
+# Completed GPIO Concepts
+
+## 1. Memory Mapped Registers
+
+Learned that STM32 peripherals are accessed using fixed memory addresses.
+
+Example:
+
+```
+
+RCC Base Address
+
+0x40021000
+
+GPIOC Base Address
+
+0x40011000
+
+```
+
+Created C++ register maps.
+
+---
+
+# 2. RCC Register Definition
+
+Created:
+
+```
+
+include/stm32f103.hpp
+
+````
+
+Current RCC structure:
+
+```cpp
+struct RCC
+{
+    volatile uint32_t CR;
+    volatile uint32_t CFGR;
+    volatile uint32_t CIR;
+    volatile uint32_t APB2RSTR;
+    volatile uint32_t APB1RSTR;
+    volatile uint32_t AHBENR;
+    volatile uint32_t APB2ENR;
+};
+````
+
+Purpose:
+
+Control clocks and peripheral enable.
+
+---
+
+# 3. GPIO Register Definition
+
+GPIO structure:
+
+```cpp
+struct GPIO
+{
+    volatile uint32_t CRL;
+    volatile uint32_t CRH;
+    volatile uint32_t IDR;
+    volatile uint32_t ODR;
+    volatile uint32_t BSRR;
+    volatile uint32_t BRR;
+};
+```
+
+Understanding:
+
+```
+CRL  -> Configure pins 0-7
+
+CRH  -> Configure pins 8-15
+
+IDR  -> Read input
+
+ODR  -> Output state
+
+BSRR -> Atomic set/reset
+
+BRR  -> Reset output
+```
+
+---
+
+# 4. Enable GPIOC Clock
+
+Completed.
+
+GPIOC clock is controlled by:
+
+```
+RCC->APB2ENR
+```
+
+GPIOC is bit 4.
+
+Code:
+
+```cpp
+RCC_REG->APB2ENR =
+    RCC_REG->APB2ENR | (1 << 4);
+```
+
+Meaning:
+
+```
+Set APB2ENR bit 4
+
+GPIOC clock ON
+```
+
+---
+
+# 5. Configure PC13 Output
+
+Completed.
+
+PC13:
+
+```
+Port C
+Pin 13
+```
+
+Since PC13 belongs to:
+
+```
+PC8 - PC15
+```
+
+configuration uses:
+
+```
+GPIOC->CRH
+```
+
+PC13 configuration location:
+
+```
+(pin - 8) × 4
+
+(13 - 8) × 4
+
+= 20
+```
+
+Therefore:
+
+```
+PC13 uses bits 20-23
+```
+
+---
+
+Configuration:
+
+```
+CNF = 00
+MODE = 10
+```
+
+Meaning:
+
+```
+General purpose output
+Push-pull
+2MHz speed
+```
+
+Code:
+
+```cpp
+GPIOC->CRH =
+    GPIOC->CRH & ~(0xF << 20);
+
+
+GPIOC->CRH =
+    GPIOC->CRH | (0x2 << 20);
+```
+
+---
+
+# 6. Output Control Understanding
+
+Completed understanding of:
+
+## ODR
+
+Output Data Register.
+
+Controls pin output state.
+
+PC13:
+
+```
+ODR bit 13
+```
+
+---
+
+## BSRR
+
+Bit Set Reset Register.
+
+Structure:
+
+```
+31                 16 15                 0
++--------------------+--------------------+
+| Reset bits         | Set bits            |
++--------------------+--------------------+
+```
+
+Set HIGH:
+
+```cpp
+GPIOC->BSRR = (1 << 13);
+```
+
+Result:
+
+```
+PC13 = HIGH
+```
+
+---
+
+## BRR
+
+Bit Reset Register.
+
+Set LOW:
+
+```cpp
+GPIOC->BRR = (1 << 13);
+```
+
+Result:
+
+```
+PC13 = LOW
+```
+
+---
+
+# 7. LED Behaviour
+
+STM32 Blue Pill onboard LED:
+
+```
+Active LOW
+```
+
+Therefore:
+
+LED ON:
+
+```cpp
+GPIOC->BRR = (1 << 13);
+```
+
+LED OFF:
+
+```cpp
+GPIOC->BSRR = (1 << 13);
+```
+
+---
+
+# Current Project Status
+
+```
+ARM Boot Stage
+
+██████████ 100%
+
+
+Register Mapping
+
+██████████ 100%
+
+
+GPIO Driver
+
+█████████░ 90%
+
+
+UART Driver
+
+░░░░░░░░░░ 0%
+
+
+I2C Driver
+
+░░░░░░░░░░ 0%
+
+
+TMP102 Driver
+
+░░░░░░░░░░ 0%
+
+
+Temperature Application
+
+░░░░░░░░░░ 0%
+```
+
+---
+
+# Remaining GPIO Tasks
+
+## 1. Create GPIO Driver Files
+
+Need:
+
+```
+drivers/gpio/
+
+gpio.hpp
+gpio.cpp
+```
+
+Functions:
+
+```cpp
+namespace gpio
+{
+
+void init();
+
+void ledOn();
+
+void ledOff();
+
+void toggle();
+
+}
+```
+
+---
+
+## 2. Connect GPIO Driver to main.cpp
+
+Application should use:
+
+```cpp
+gpio::init();
+
+gpio::ledOn();
+
+gpio::ledOff();
+```
+
+Application should not directly access:
+
+```
+RCC registers
+GPIO registers
+```
+
+---
+
+## 3. Add Temporary Delay
+
+Need:
+
+```
+LED ON
+500ms
+LED OFF
+500ms
+```
+
+Later replace with:
+
+```
+Timer Driver
+```
+
+---
+
+## 4. Test GPIO in Wokwi
+
+Expected:
+
+```
+STM32F103C8
+
+      |
+
+GPIOC PC13
+
+      |
+
+Onboard LED
+
+      |
+
+Blinking
+```
+
+---
+
+# Next Resume Point
+
+Continue from:
+
+```
+Lesson 3 — Finish GPIO Driver and Run in Wokwi
+```
+
+Commands:
+
+```
+cd arm-cpp-temperature-monitor
+
+code .
+```
+
+Check:
+
+```
+git status
+```
+
+Build:
+
+```
+cmake --build build
+```
+
+Next milestone:
+
+```
+First bare-metal LED blink using our own C++ GPIO driver.
+```
+
+```
+```

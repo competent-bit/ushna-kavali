@@ -16,13 +16,13 @@ int main()
     
     while(true)
     {
-        gpio.SetLed();
+        //gpio.SetLed();
 
-        delay::ms(500);
+       // delay::ms(500);
 
         gpio.UnsetLed();
 
-        delay::ms(500);
+        delay::ms(1);
     }
 
 
